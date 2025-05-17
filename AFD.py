@@ -1,4 +1,7 @@
-                    
+# Disciplina: Compiladores - 2025.1 - UFMA
+# Alunas: Juliana Gonçalves Câmara e Paloma Santos Ferreira
+# Maio 2025
+# Implementação de um Automato Finito Determinístico que Aceita Constantes Numéricas                   
 from enum import Enum
 
 class AFD:
@@ -8,7 +11,6 @@ class AFD:
         inVirgula = 2
         estado_final = 3
         inNegativo = 4
-        estado_rejeitado = 5
 
     def __init__(self, lineBuf):
         self.lineBuf = lineBuf
@@ -20,7 +22,7 @@ class AFD:
         if not self.EOF_flag and self.linhaAtual > 0:
             self.linhaAtual -= 1
 
-    def getNextChar(self):
+    def obterProximoCaracter(self):
         if self.linhaAtual >= self.bufsize:
             self.EOF_flag = True
             return None
@@ -29,23 +31,23 @@ class AFD:
             self.linhaAtual += 1
             return charAtual
         
-    def isDigit(self, char):
+    def ehDigito(self, char):
         return char.isdigit()
 
-    def getToken(self):
+    def obterToken(self):
         state = self.Estados.estado_inicial
-        lexema = ""
+        lexema = ''
 
         while state != self.Estados.estado_final and not self.EOF_flag:
-            token = self.getNextChar()
+            token = self.obterProximoCaracter()
 
             if token is None:
                 break
 
             match state:
                 case self.Estados.estado_inicial:
-                    if self.isDigit(token):
-                        lexema += token
+                    if self.ehDigito(token):
+                        lexema+= token
                         state = self.Estados.inNum
                     elif token == '-':
                         lexema+=token
@@ -53,14 +55,15 @@ class AFD:
                     else:
                         state = self.Estados.estado_inicial
                 case self.Estados.inNegativo:
-                    if self.isDigit(token):
+                    if self.ehDigito(token):
                         lexema += token
                         state = self.Estados.inNum
                     else:
                         self.retrocesso()
-                        state = self.Estados.estado_final
+                        lexema=''
+                        state = self.Estados.estado_inicial
                 case self.Estados.inNum:
-                    if self.isDigit(token):
+                    if self.ehDigito(token):
                         lexema += token
                     elif token == ",":
                         lexema += token
@@ -71,13 +74,12 @@ class AFD:
 
                 case self.Estados.inVirgula:
                     state = self.Estados.estado_inicial
-                    if self.isDigit(token):
+                    if self.ehDigito(token):
                         lexema += token
                         state = self.Estados.inNum
                     else:
                         state = self.Estados.estado_inicial
-                
-
+        
 
         # Verificação final após sair do loop
         if lexema:
@@ -94,7 +96,7 @@ def main():
         if(lexema=='sair'):
             break
         afd = AFD(lexema)
-        print(afd.getToken())
+        print(afd.obterToken())
 
 
 main()
