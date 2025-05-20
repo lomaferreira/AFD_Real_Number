@@ -37,9 +37,11 @@ class AFD:
     def obterToken(self):
         state = self.Estados.estado_inicial
         lexema = ''
-
+        token_chars=[]
+ 
         while state != self.Estados.estado_final and not self.EOF_flag:
             token = self.obterProximoCaracter()
+            save=True
 
             if token is None:
                 break
@@ -47,42 +49,41 @@ class AFD:
             match state:
                 case self.Estados.estado_inicial:
                     if self.ehDigito(token):
-                        lexema+= token
                         state = self.Estados.inNum
                     elif token == '-':
-                        lexema+=token
                         state = self.Estados.inNegativo
                     else:
                         state = self.Estados.estado_inicial
+                        save=False
                 case self.Estados.inNegativo:
                     if self.ehDigito(token):
-                        lexema += token
                         state = self.Estados.inNum
                     else:
                         self.retrocesso()
-                        lexema=''
+                        token_chars=[] #esvazia a lista se tiver um menos não seguido de um digito
                         state = self.Estados.estado_inicial
+                        save=False
                 case self.Estados.inNum:
-                    if self.ehDigito(token):
-                        lexema += token
-                    elif token == ",":
-                        lexema += token
+                    if token == ",":
                         state = self.Estados.inVirgula
-                    else:
+                    elif not self.ehDigito(token):
                         state = self.Estados.estado_final
                         self.retrocesso()
+                        save=False
 
                 case self.Estados.inVirgula:
-                    state = self.Estados.estado_inicial
                     if self.ehDigito(token):
-                        lexema += token
                         state = self.Estados.inNum
                     else:
-                        state = self.Estados.estado_inicial
+                        self.retrocesso()
+                        state = self.Estados.estado_final
+                        save=False
         
-
-        # Verificação final após sair do loop
-        if lexema:
+            if save:
+                token_chars.append(token)
+        # Junção dos caracteres
+        if token_chars:
+            lexema = ''.join(token_chars)
             return f"Token Aceito: {lexema}"
         else:
             return "Nenhum token foi reconhecido"
